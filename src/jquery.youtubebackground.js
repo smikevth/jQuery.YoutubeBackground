@@ -25,13 +25,9 @@ if (typeof Object.create !== "function") {
       // Load Youtube API
       var tag = document.createElement('script'),
       head = document.getElementsByTagName('head')[0];
-      
-      if(window.location.origin == 'file://') {
-        tag.src = 'http://www.youtube.com/iframe_api';
-      } else {
-        tag.src = '//www.youtube.com/iframe_api';
-      }
-      
+
+      tag.src = location.protocol + '//www.youtube.com/iframe_api';
+
       head.appendChild(tag);
 
       // Clean up Tags.
@@ -42,11 +38,11 @@ if (typeof Object.create !== "function") {
     },
     iframeIsReady = function iframeIsReady(callback) {
       // Listen for Gobal YT player callback
+
       if (typeof YT === 'undefined' && typeof window.loadingPlayer === 'undefined') {
         // Prevents Ready Event from being called twice
         window.loadingPlayer = true;
 
-        
         // Creates deferred so, other players know when to wait.
         window.dfd = $.Deferred();
         window.onYouTubeIframeAPIReady = function() {
@@ -83,14 +79,15 @@ if (typeof Object.create !== "function") {
       pauseOnScroll: false,
       fitToBackground: true,
       playerVars: {
-        iv_load_policy: 3,
         modestbranding: 1,
         autoplay: 1,
         controls: 0,
         showinfo: 0,
-        wmode: 'opaque',
+        wmode: 'transparent',
         branding: 0,
-        autohide: 0
+        rel: 0,
+        autohide: 0,
+        origin: window.location.origin
       },
       events: null
     },
@@ -110,7 +107,7 @@ if (typeof Object.create !== "function") {
 
       // Setup event defaults with the reference to this
       self.defaults.events = {
-        'onReady': function(e) {
+        onReady: function(e) {
           self.onPlayerReady(e);
 
           // setup up pause on scroll
@@ -123,10 +120,8 @@ if (typeof Object.create !== "function") {
             self.options.callback.call(this);
           }
         },
-        'onStateChange': function(e) {
+        onStateChange: function(e) {
           if (e.data === 1) {
-
-            self.$node.find('img').fadeOut(400);
             self.$node.addClass('loaded');
           } else if (e.data === 0 && self.options.repeat) { // video ended and repeat option is set true
             self.player.seekTo(self.options.start);
@@ -136,6 +131,7 @@ if (typeof Object.create !== "function") {
 
 
       self.options = $.extend(true, {}, self.defaults, self.userOptions);
+
       self.options.height = Math.ceil(self.options.width / self.options.ratio);
       self.ID = (new Date()).getTime();
       self.holderID = 'YTPlayer-ID-' + self.ID;
@@ -177,6 +173,7 @@ if (typeof Object.create !== "function") {
         }
       });
     },
+
     /**
      * @function createContainerVideo
      * Adds HTML for video in a container
@@ -188,7 +185,7 @@ if (typeof Object.create !== "function") {
       var $YTPlayerString = $('<div id="ytplayer-container' + self.ID + '" >\
                                     <div id="' + self.holderID + '" class="ytplayer-player"></div> \
                                     </div> \
-                                    <div id="ytplayer-shield" class="ytplayer-shield"></div>');
+                                    <div id="ytplayer-shield"></div>');
 
       self.$node.append($YTPlayerString);
       self.$YTPlayerString = $YTPlayerString;
@@ -205,7 +202,7 @@ if (typeof Object.create !== "function") {
         $YTPlayerString = $('<div id="ytplayer-container' + self.ID + '" class="ytplayer-container background">\
                                     <div id="' + self.holderID + '" class="ytplayer-player"></div>\
                                     </div>\
-                                    <div id="ytplayer-shield" class="ytplayer-shield"></div>');
+                                    <div id="ytplayer-shield"></div>');
 
       self.$node.append($YTPlayerString);
       self.$YTPlayerString = $YTPlayerString;
@@ -224,7 +221,7 @@ if (typeof Object.create !== "function") {
         container = self.$node;
       }
 
-      var width = container.width(),
+      var width = container.width() + 20,
         pWidth, // player width, to be defined
         height = container.height(),
         pHeight, // player height, tbd
@@ -256,7 +253,8 @@ if (typeof Object.create !== "function") {
      */
     onYouTubeIframeAPIReady: function onYouTubeIframeAPIReady() {
       var self = this;
-      self.player = new window.YT.Player(self.holderID, self.options);  
+
+      self.player = new window.YT.Player(self.holderID, self.options);
     },
 
     /**
